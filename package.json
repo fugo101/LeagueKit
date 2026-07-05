@@ -1,0 +1,20 @@
+{
+  "name": "leaguekit",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Quality-of-life automation for the League Client (Pengu Loader plugin).",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4"
+  },
+  "lint-staged": {
+    "*.js": "prettier --write"
+  }
+}

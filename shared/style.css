@@ -1,0 +1,49 @@
+/* LeagueKit — settings dialog (opened with Ctrl+Shift+L).
+   The dialog mirrors the native settings DOM (same tags + .lol-settings-*
+   classes), so the client's settings CSS styles everything. We only control
+   the overlay's visibility here. */
+
+#lk-root.modal {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+#lk-root.modal.lk-show {
+  display: block;
+}
+
+/* Everything below is the minimal custom surface for the Auto Honor picker; each
+   rule is here only because no native client class covers it (see CLAUDE.md:
+   "Minimize custom CSS — prefer the client's native classes"). */
+
+/* Lock a whole section when its controlling toggle (e.g. Enable) is off — the
+   native rows have no "disable this container" state. */
+#lk-root .lk-row-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Row-click select affordance — block-list rows are not natively clickable. */
+#lk-root .lk-honor-player {
+  cursor: pointer;
+}
+/* Selection highlight in the client's gold tones — block-list markup has no
+   native "selected" state to reuse. */
+#lk-root .lk-honor-player.lk-selected .lol-block-list-player {
+  background-color: rgba(200, 170, 110, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 170, 110, 0.9),
+    0 0 10px rgba(200, 170, 110, 0.35);
+}
+
+/* Dim offline rows like the greyed "Ẩn" roster entries. Native offline dimming
+   is scoped to roster markup (.lol-social-roster-member.offline), which these
+   block-list rows don't use. Never applied to a selected row (keeps gold bright). */
+#lk-root .lk-honor-player.lk-offline {
+  opacity: 0.5;
+}
+/* Behavior glue (not styling): the native availability dot carries a tooltip
+   hitbox that would otherwise swallow the row's select click. */
+#lk-root .lk-honor-player .lol-social-availability-hitbox {
+  pointer-events: none;
+}
