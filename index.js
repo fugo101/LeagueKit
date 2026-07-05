@@ -12,7 +12,7 @@
 import { registerHotkey } from './shared/hotkey';
 import { createSettingsModal } from './shared/settings-panel';
 import { aboutSection } from './shared/about';
-import { log } from './shared/log';
+import { log, startLogCapture, stopLogCapture } from './shared/log';
 
 import autoAccept from './features/auto-accept/index';
 import autoHonor from './features/auto-honor/index';
@@ -21,6 +21,10 @@ import autoPlayAgain from './features/auto-play-again/index';
 const FEATURES = [autoAccept, autoHonor, autoPlayAgain];
 
 export function init(context) {
+  // Log capture is always on — start it first so the lines below (feature loads,
+  // hotkey) are captured too.
+  startLogCapture();
+
   const instances = [];
   const featureSections = [];
 
@@ -62,5 +66,7 @@ export function init(context) {
     modal.destroy();
     offHotkey();
     log.info('stopped, cleaned up');
+    // Flush + stop the capture buffer last, so the line above is buffered first.
+    stopLogCapture();
   };
 }

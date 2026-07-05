@@ -37,6 +37,11 @@ There is no build/lint/test pipeline — Pengu Loader loads the `.js` files dire
   gated behind a **Debug logging** toggle in the settings dialog's **Info** tab; `log.warn`/`log.error`
   always show. The flag (key `leagueKit.debug`) persists through `shared/persist.js` (Pengu DataStore,
   localStorage fallback) — not raw `localStorage` — so it survives client restarts.
+- **Log capture & export** (`shared/logsink.js`): independent of the Debug toggle, **every** log line
+  (all levels) is always mirrored into a capped ring buffer (2000 lines) persisted via `persist.js`
+  (DataStore), so it survives restarts. The About tab exposes **Copy logs** / **Download .log** /
+  **Clear logs** to retrieve it. There is **no on-disk log file** — Pengu removed its filesystem API
+  (see gotchas), so this is the closest substitute.
 - Open the settings dialog in-client with the **Ctrl+Shift+L** hotkey.
 - The folder is under `C:\Program Files`, so writing files / reloading may require running Pengu
   Loader as Administrator.
@@ -96,8 +101,11 @@ deep-cloned `defaults`, delegating actual storage to `persist.js`),
 `persist.js` (the **single storage boundary** — the only file that touches Pengu `DataStore` /
 `localStorage`; DataStore-backed so config survives client restarts, with a localStorage fallback +
 one-time migration. Never read/write `DataStore`/`localStorage` elsewhere — go through `persist.js`),
-`log.js` (the gated logger + Debug flag), `hotkey.js`, `i18n.js` + `locales/` (the translation layer,
-below), and `about.js` (plugin `META` + the "About" section).
+`log.js` (the gated logger + Debug flag; a single `emit` chokepoint routes every call to the console
+**and** to the capture buffer), `logsink.js` (the always-on log-capture buffer — a capped ring buffer
+persisted through `persist.js`/DataStore and exported from the About tab; it imports only `persist.js`
+so `log.js` can depend on it without a cycle), `hotkey.js`, `i18n.js` + `locales/` (the translation
+layer, below), and `about.js` (plugin `META` + the "About" section, incl. the log export buttons).
 
 **Internationalization (i18n)** (`shared/i18n.js` + `shared/locales/<code>.js`) — all user-facing
 strings are referenced by **semantic label keys** (e.g. `'autoAccept.acceptDelay'`, `'common.enable'`),
@@ -116,6 +124,12 @@ UI is translated — console logs stay English. Rendering already routes through
 
 ## Hard-won gotchas (do not regress)
 
+- **No filesystem API — do not try to write files.** Pengu Loader's `PluginFS` was **removed in
+  v1.1.2** ("for security reasons") and is absent from the current stable build (v1.1.6), so
+  `typeof PluginFS === 'undefined'` at runtime. The `pengu.lol/runtime-api/plugin-fs` docs page still
+  describes it but is **stale** — do not trust it. The only durable storage is Pengu `DataStore` (via
+  `persist.js`). This is why "log to file" is implemented as a DataStore-backed buffer + Copy/Download
+  export (`logsink.js`), not a real `.log` file.
 - **Directory imports do not resolve.** Pengu appends `.js` to extensionless imports but does NOT
   resolve a folder to its `index.js`. Import a feature as `./features/<id>/index`, never
   `./features/<id>`. Plain file imports may omit `.js`.
